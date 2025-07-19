@@ -28,8 +28,10 @@ def get_sheet():
     client = gspread.authorize(creds)
     return client.open_by_key(SPREADSHEET_ID)
 
-def create_signature(timestamp, method, path, body=""):
-    message = f'{timestamp}{method.upper()}{path}{body}'
+def create_signature(timestamp, method, path, query="", body=""):
+    # Финальный синтаксис согласно документации: path + query + body
+    request_path = path + query
+    message = f"{timestamp}{method.upper()}{request_path}{body}"
     mac = hmac.new(API_SECRET.encode(), message.encode(), hashlib.sha256)
     return base64.b64encode(mac.digest()).decode()
 
@@ -37,12 +39,11 @@ def get_bitget_fills():
     timestamp = str(int(time.time() * 1000))
     method = 'GET'
     path = '/api/spot/v1/trade/fills'
-    query_params = {'limit': 50}
-    query_string = '?' + urlencode(query_params)
+    query_dict = {'limit': 50}
+    query_string = '?' + urlencode(query_dict)
     url = f'https://api.bitget.com{path}{query_string}'
 
-    # подпись без query
-    sign = create_signature(timestamp, method, path, "")
+    sign = create_signature(timestamp, method, path, query_string, "")
 
     headers = {
         'ACCESS-KEY': API_KEY,
