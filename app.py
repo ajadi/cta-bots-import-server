@@ -1,3 +1,5 @@
+import os
+import json
 import hmac
 import hashlib
 import base64
@@ -8,17 +10,22 @@ from datetime import datetime
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-API_KEY = "bg_ced5fe14a62601c81035f2bdf38416b8"
-API_SECRET = "5974bf223b5ed3ab1565fbfd298f4e440e826779855ed9829b399dd02965cd20"
-API_PASSPHRASE = "vbh32rooT"
-SPREADSHEET_ID = "1MH3mx8M92qfiA6zKD-2eIw72A-s4b2JhGOTxWAXXAA8"
-GOOGLE_JSON = "google_creds.json"
+# --- Конфигурация из переменных окружения ---
+API_KEY = os.getenv("API_KEY")
+API_SECRET = os.getenv("API_SECRET")
+API_PASSPHRASE = os.getenv("API_PASSPHRASE")
+SPREADSHEET_ID = os.getenv("SPREADSHEET_ID")
 
+# Парсим JSON Google credentials из переменной
+GOOGLE_CREDENTIALS_JSON = os.getenv("GOOGLE_CREDENTIALS_JSON")
+GOOGLE_CREDS = json.loads(GOOGLE_CREDENTIALS_JSON)
+
+# --- Flask-приложение ---
 app = Flask(__name__)
 
 def get_sheet():
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_name(GOOGLE_JSON, scope)
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(GOOGLE_CREDS, scope)
     client = gspread.authorize(creds)
     return client.open_by_key(SPREADSHEET_ID)
 
