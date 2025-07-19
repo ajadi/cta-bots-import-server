@@ -2,6 +2,7 @@ import os
 import json
 import hmac
 import hashlib
+import base64
 import requests
 import time
 from flask import Flask
@@ -29,7 +30,7 @@ def get_sheet():
 def create_signature(timestamp, method, request_path, body=''):
     message = f'{timestamp}{method.upper()}{request_path}{body}'
     mac = hmac.new(API_SECRET.encode(), message.encode(), hashlib.sha256)
-    return mac.hexdigest()
+    return base64.b64encode(mac.digest()).decode()
 
 def get_bitget_fills():
     timestamp = str(int(time.time() * 1000))
