@@ -7,6 +7,7 @@ import requests
 import time
 from flask import Flask
 from datetime import datetime
+from urllib.parse import quote
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -28,7 +29,9 @@ def get_sheet():
     return client.open_by_key(SPREADSHEET_ID)
 
 def create_signature(timestamp, method, full_path):
-    message = f'{timestamp}{method.upper()}{full_path}'
+    # Bitget требует URL-кодированный путь
+    encoded_path = quote(full_path, safe='/:?=&')  # кодируем корректно
+    message = f'{timestamp}{method.upper()}{encoded_path}'
     mac = hmac.new(API_SECRET.encode(), message.encode(), hashlib.sha256)
     return base64.b64encode(mac.digest()).decode()
 
