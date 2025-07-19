@@ -7,8 +7,8 @@ import requests
 import time
 from flask import Flask
 from datetime import datetime
-import gspread
 from urllib.parse import urlencode
+import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # --- Переменные окружения ---
@@ -28,9 +28,8 @@ def get_sheet():
     client = gspread.authorize(creds)
     return client.open_by_key(SPREADSHEET_ID)
 
-def create_signature(timestamp, method, path):
-    # Bitget SPOT требует: без query в подписи
-    message = f'{timestamp}{method.upper()}{path}'
+def create_signature(timestamp, method, path, body=""):
+    message = f'{timestamp}{method.upper()}{path}{body}'
     mac = hmac.new(API_SECRET.encode(), message.encode(), hashlib.sha256)
     return base64.b64encode(mac.digest()).decode()
 
@@ -39,10 +38,12 @@ def get_bitget_fills():
     method = 'GET'
     path = '/api/spot/v1/trade/fills'
     query_params = {'limit': 50}
-    query = '?' + urlencode(query_params)
-    full_url_path = path + query
+    query_string = '?' + urlencode(query_params)
+    url = f'https://api.bitget.com{path}{query_string}'
 
-    sign = create_signature(timestamp, method, path)  # подпись только по path
+    # подпись без query
+    sign = create_signature(timestamp, method, path, "")
+
     headers = {
         'ACCESS-KEY': API_KEY,
         'ACCESS-SIGN': sign,
@@ -52,7 +53,6 @@ def get_bitget_fills():
         'locale': 'en-US'
     }
 
-    url = f'https://api.bitget.com{full_url_path}'
     resp = requests.get(url, headers=headers)
 
     try:
