@@ -50,14 +50,14 @@ def get_bitget_fills():
 
     try:
         result = resp.json()
-        print("Bitget API response:", result)
+        print("Bitget API response:", result, flush=True)
         if 'data' in result and isinstance(result['data'], list):
             return result['data']
         else:
             return []
     except Exception as e:
-        print("Bitget API response error:", e)
-        print("Raw response:", resp.text)
+        print("Bitget API response error:", e, flush=True)
+        print("Raw response:", resp.text, flush=True)
         return []
 
 def upload_trade(trade, ws):
@@ -69,7 +69,7 @@ def upload_trade(trade, ws):
         profit = trade.get('profit', '')
         ws.append_row([date, tp_sl, roi, size, profit, "Импортировано"])
     except Exception as e:
-        print("Ошибка при записи строки:", e)
+        print("Ошибка при записи строки:", e, flush=True)
 
 @app.route('/bitget_to_sheet')
 def bitget_to_sheet():
@@ -99,7 +99,7 @@ def bitget_to_sheet():
 
         return "Импорт завершён", 200
     except Exception as e:
-        print("Ошибка общего уровня:", e)
+        print("Ошибка общего уровня:", e, flush=True)
         return f"Ошибка: {str(e)}", 500
 
 @app.route('/')
