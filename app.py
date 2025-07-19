@@ -27,10 +27,8 @@ def get_sheet():
     client = gspread.authorize(creds)
     return client.open_by_key(SPREADSHEET_ID)
 
-def create_signature(timestamp, method, full_path, body=None):
-    if method.upper() == 'GET' or body is None:
-        body = ''
-    message = f'{timestamp}{method.upper()}{full_path}{body}'
+def create_signature(timestamp, method, full_path):
+    message = f'{timestamp}{method.upper()}{full_path}'
     mac = hmac.new(API_SECRET.encode(), message.encode(), hashlib.sha256)
     return base64.b64encode(mac.digest()).decode()
 
