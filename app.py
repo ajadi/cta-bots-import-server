@@ -27,8 +27,10 @@ def get_sheet():
     client = gspread.authorize(creds)
     return client.open_by_key(SPREADSHEET_ID)
 
-def create_signature(timestamp, method, request_path, body=''):
-    message = f'{timestamp}{method.upper()}{request_path}{body}'
+def create_signature(timestamp, method, full_path, body=None):
+    if method.upper() == 'GET' or body is None:
+        body = ''
+    message = f'{timestamp}{method.upper()}{full_path}{body}'
     mac = hmac.new(API_SECRET.encode(), message.encode(), hashlib.sha256)
     return base64.b64encode(mac.digest()).decode()
 
@@ -37,9 +39,9 @@ def get_bitget_fills():
     method = 'GET'
     path = '/api/mix/v1/order/fills'
     query = '?productType=umcbl&limit=50'
-    body = ''
+    full_path = path + query
 
-    sign = create_signature(timestamp, method, path + query, body)
+    sign = create_signature(timestamp, method, full_path)
     headers = {
         'ACCESS-KEY': API_KEY,
         'ACCESS-SIGN': sign,
@@ -49,7 +51,7 @@ def get_bitget_fills():
         'locale': 'en-US'
     }
 
-    url = f'https://api.bitget.com{path}{query}'
+    url = f'https://api.bitget.com{full_path}'
     resp = requests.get(url, headers=headers)
 
     try:
