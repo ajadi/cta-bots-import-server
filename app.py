@@ -50,10 +50,10 @@ def get_bitget_fills():
 
     try:
         result = resp.json()
+        print("Bitget API response:", result)
         if 'data' in result and isinstance(result['data'], list):
             return result['data']
         else:
-            print("Bitget API error:", result)
             return []
     except Exception as e:
         print("Bitget API response error:", e)
