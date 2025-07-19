@@ -37,8 +37,8 @@ def create_signature(timestamp, method, full_path, body=None):
 def get_bitget_fills():
     timestamp = str(int(time.time() * 1000))
     method = 'GET'
-    path = '/api/mix/v1/order/fills'
-    query = '?productType=umcbl&limit=50'
+    path = '/api/spot/v1/trade/fills'
+    query = '?limit=50'
     full_path = path + query
 
     sign = create_signature(timestamp, method, full_path)
@@ -69,10 +69,10 @@ def get_bitget_fills():
 def upload_trade(trade, ws):
     try:
         date = datetime.fromtimestamp(int(trade['cTime']) / 1000).strftime('%Y-%m-%d %H:%M')
-        tp_sl = trade.get('orderType', '')
-        roi = trade.get('profitRate', '')
-        size = trade.get('size', '')
-        profit = trade.get('profit', '')
+        tp_sl = trade.get('side', '')
+        roi = trade.get('fillPrice', '')
+        size = trade.get('fillQuantity', '')
+        profit = trade.get('notional', '')
         ws.append_row([date, tp_sl, roi, size, profit, "Импортировано"])
     except Exception as e:
         print("Ошибка при записи строки:", e, flush=True)
@@ -88,7 +88,7 @@ def bitget_to_sheet():
         routed = {'MACD-30m': [], 'MACD-1h': [], 'RSI-30m': []}
 
         for trade in trades:
-            algo = trade.get('algoName', '')
+            algo = trade.get('symbol', '')
             if 'MACD-30m' in algo:
                 routed['MACD-30m'].append(trade)
             elif 'MACD-1h' in algo:
