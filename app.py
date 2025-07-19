@@ -2,7 +2,6 @@ import os
 import json
 import hmac
 import hashlib
-import base64
 import requests
 import time
 from flask import Flask
@@ -30,22 +29,26 @@ def get_sheet():
 def create_signature(timestamp, method, request_path, body=''):
     message = f'{timestamp}{method.upper()}{request_path}{body}'
     mac = hmac.new(API_SECRET.encode(), message.encode(), hashlib.sha256)
-    return base64.b64encode(mac.digest()).decode()
+    return mac.hexdigest()
 
 def get_bitget_fills():
     timestamp = str(int(time.time() * 1000))
     method = 'GET'
-    path = '/api/mix/v1/order/fills?productType=USDT-FUTURES&limit=50'
+    path = '/api/mix/v1/order/fills'
+    query = '?productType=umcbl&limit=50'
+    body = ''
 
-    sign = create_signature(timestamp, method, path)
+    sign = create_signature(timestamp, method, path + query, body)
     headers = {
         'ACCESS-KEY': API_KEY,
         'ACCESS-SIGN': sign,
         'ACCESS-TIMESTAMP': timestamp,
-        'ACCESS-PASSPHRASE': API_PASSPHRASE
+        'ACCESS-PASSPHRASE': API_PASSPHRASE,
+        'Content-Type': 'application/json',
+        'locale': 'en-US'
     }
 
-    url = f'https://api.bitget.com{path}'
+    url = f'https://api.bitget.com{path}{query}'
     resp = requests.get(url, headers=headers)
 
     try:
